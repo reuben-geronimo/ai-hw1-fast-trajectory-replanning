@@ -1,0 +1,77 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Linux
+*~
+
+# Python bytecode / caches
+__pycache__/
+*.py[cod]
+*$py.class
+__pypackages__/
+
+# C extensions
+*.so
+*.pyd
+
+# Virtual environments
+.env
+.venv/
+venv/
+ENV/
+env/
+
+# Packaging / build artifacts
+.Python
+build/
+dist/
+downloads/
+*.egg
+*.egg-info/
+.eggs/
+*.whl
+pip-wheel-metadata/
+wheelhouse/
+
+# Test / coverage
+.tox/
+.nox/
+.pytest_cache/
+.coverage
+.coverage.*
+coverage.xml
+*.cover
+*.py,cover
+htmlcov/
+.hypothesis/
+
+# Type checking / lint caches
+.mypy_cache/
+.pytype/
+.pyre/
+.ruff_cache/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Logs
+*.log
+
+# Misc caches
+.cache/
+
+# IDEs / editors
+.vscode/
+.idea/
+*.swp
+*.swo
+
