@@ -17,11 +17,15 @@ random.seed(42)
 
 def create_maze() -> list:
     # TODO: Implement this function to generate and return a random maze as a 2D list of 0s and 1s.
-    # DFS / corridor-like generation as described in Assignment1.pdf:
-    # - Visit cells depth-first using a stack, random neighbor tie-breaking.
-    # - When visiting an unvisited neighbor: block it with 30% probability,
-    #   otherwise mark it free and push to stack.
-    # - When dead-end, backtrack. If stack empties but unvisited remain, restart.
+    # Growing Tree algorithm (newest-cell selection) as described by Jamis Buck:
+    # https://weblog.jamisbuck.org/2011/1/27/maze-generation-growing-tree-algorithm
+    #
+    # We keep the assignment’s blocked/free decision:
+    # - when visiting a new cell, mark it blocked with 30% probability
+    # - if unblocked, add it to the active list
+    #
+    # If the active list becomes empty while unvisited cells remain, restart from a
+    # random unvisited cell (matches Assignment1.pdf guidance).
 
     UNVISITED, VISITED = 0, 1
     visited = [[UNVISITED for _ in range(ROWS)] for _ in range(ROWS)]
@@ -46,29 +50,34 @@ def create_maze() -> list:
             return None
         return random.choice(cells)
 
-    stack: list[tuple[int, int]] = []
+    # C = active list of “frontier” cells; newest-cell selection means we always
+    # expand from C[-1] (recursive backtracker style).
+    C: list[tuple[int, int]] = []
+
     start = pick_unvisited()
     while start is not None:
-        r, c = start
-        visited[r][c] = VISITED
-        maze[r][c] = 0
-        stack.append((r, c))
+        sr, sc = start
+        visited[sr][sc] = VISITED
+        maze[sr][sc] = 0
+        C.append((sr, sc))
 
-        while stack:
-            cr, cc = stack[-1]
+        while C:
+            cr, cc = C[-1]  # newest cell
             nbrs = unvisited_neighbors(cr, cc)
             if not nbrs:
-                stack.pop()
+                C.pop()
                 continue
 
             nr, nc = random.choice(nbrs)
             visited[nr][nc] = VISITED
             if random.random() < 0.30:
                 maze[nr][nc] = 1
+                # blocked: do not add to active list
             else:
                 maze[nr][nc] = 0
-                stack.append((nr, nc))
+                C.append((nr, nc))
 
+        # If there are still unvisited cells (disconnected regions), restart.
         start = pick_unvisited()
 
     # ensure start/goal cells are unblocked
