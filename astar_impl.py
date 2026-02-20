@@ -5,17 +5,17 @@ import heapq
 from cell import Cell
 from grid import GridWorld
 
-
+# compute the manhattan distance between two cells
 def manhattan(cell: Cell, goal: Cell) -> int:
     return abs(cell.r - goal.r) + abs(cell.c - goal.c)
 
-
+# compute the adaptive heuristic
 def adaptive_heuristic(cell: Cell, goal: Cell) -> float:
     if cell.h is not None:
         return float(cell.h)
     return float(abs(cell.r - goal.r) + abs(cell.c - goal.c))
 
-
+# compute the path using A* search (single pass)
 def compute_path(
     grid: GridWorld,
     start: Cell,
