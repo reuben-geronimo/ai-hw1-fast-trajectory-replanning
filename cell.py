@@ -14,12 +14,13 @@ class Cell:
     @property
     def r(self) -> int:
         return self.coord[0]
+
     @property
     def c(self) -> int:
         return self.coord[1]
 
     def reset_for_search(self, current_search: int) -> None:
-        """Lazy innit/reset for a new A* search."""
+        """Lazy init/reset for a new A* search."""
         if self.search_id != current_search:
             self.g = float('inf')
             self.parent = None
@@ -27,4 +28,8 @@ class Cell:
 
     def __repr__(self) -> str:
         parent = self.parent.coord if self.parent else None
-        return f"Cell(coord={self.coord}, g={self.g}, h={self.h}, search_id={self.search_id}, parent={parent})"
+        return (
+            f"Cell(coord={self.coord}, g={self.g}, h={self.h}, "
+            f"search_id={self.search_id}, parent={parent})"
+        )
+
