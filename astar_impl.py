@@ -1,9 +1,8 @@
 from __future__ import annotations
 
-import heapq
-
 from cell import Cell
 from grid import GridWorld
+from custom_pq import CustomPQ_maxG, CustomPQ_minG
 
 # compute the manhattan distance between two cells
 def manhattan(cell: Cell, goal: Cell) -> int:
@@ -32,27 +31,30 @@ def compute_path(
     start.g = 0.0
     start.parent = None
 
-    open_heap: list[tuple[float, float, int, Cell]] = []
-    counter = 0
+    # Open list priority queue (from-scratch heap implementation).
+    if tie_breaking == "max_g":
+        pq = CustomPQ_maxG[Cell]()
+    else:
+        pq = CustomPQ_minG[Cell]()
 
     def push(cell: Cell) -> None:
-        nonlocal counter
-        counter += 1
         g = float(cell.g)
         f = g + float(heuristic_fn(cell, end))
-        tie = -g if tie_breaking == "max_g" else g
-        heapq.heappush(open_heap, (f, tie, counter, cell))
+        pq.push(f=f, g=g, item=cell)
 
     push(start)
 
     closed: set[tuple[int, int]] = set()
     expanded: list[Cell] = []
 
-    while open_heap:
-        _, _, _, cur = heapq.heappop(open_heap)
+    while not pq.empty():
+        _, g_popped, cur = pq.pop()
         if cur.coord in closed:
             continue
         if cur.search_id != search_id:
+            continue
+        # Lazy-duplicate handling: skip stale queue entries.
+        if float(cur.g) != float(g_popped):
             continue
 
         closed.add(cur.coord)
