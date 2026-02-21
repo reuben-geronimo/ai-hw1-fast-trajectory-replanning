@@ -4,6 +4,8 @@ gen_test_json.py — Generate N random 101x101 mazes and save as mazes.json. Use
 Usage:
     python gen_test_json.py [--num_mazes N] [--seed S] [--output FILE]
 """
+from __future__ import annotations
+
 import json
 import random
 import argparse

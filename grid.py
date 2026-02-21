@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from cell import Cell
 
 UNKNOWN, FREE, BLOCKED = range(3)
