@@ -75,3 +75,7 @@ htmlcov/
 *.swp
 *.swo
 
+# Generated assignment artifacts (regeneratable)
+mazes.json
+results_q*.json
+
