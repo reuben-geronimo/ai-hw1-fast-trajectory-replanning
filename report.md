@@ -5,11 +5,32 @@
 - Reuben Geronimo (`rg1090`)
 - Orland Geronimo (`ogg9`)
 
+## Project Summary
+
+In this assignment, we implemented and compared three repeated-planning methods for unknown gridworlds:
+
+- Repeated Forward A*
+- Repeated Backward A*
+- Adaptive A*
+
+Each maze is `101 x 101`, the agent starts at the top-left cell, and the goal is the bottom-right cell. The agent does **not** know the full map in advance. It only discovers blockage status as it moves, then replans when needed.
+
+All comparison numbers in this report come from the same 50 mazes (seed `42`). We compared methods mostly using:
+
+- found rate
+- expanded nodes (primary metric)
+- runtime in milliseconds
+- replans
+
+This report keeps the language simple but still gives complete answers for all required parts.
+
 ## Part 1a - Why the first move is east in Figure 8
 
-The agent plans with the freespace assumption, so unknown cells are treated as unblocked until observed otherwise. On the first search in Figure 8, moving east is on a shortest presumed-unblocked path to the target.  
+The agent plans with the freespace assumption, so unknown cells are treated as unblocked until observed otherwise. In Figure 8, the first search is done on that assumed map, and moving east is on a shortest presumed-unblocked path to the target.
 
-If multiple first moves have the same path cost (for example east and north), the implementation's tie-breaking and neighbor-processing order pick one deterministically. In our implementation, that first move is east.
+If multiple first moves have the same cost (for example east and north), the implementation still has to pick one. That choice is determined by tie-breaking and neighbor processing order. Our implementation is deterministic in this situation, so it consistently chooses east for that example.
+
+What this means: the east move is not because the agent already knows north is blocked; it is because under initial uncertainty and tie-handling, east is the selected shortest option.
 
 ## Part 1b - Why the agent always terminates in finite time; move upper bound
 
@@ -29,6 +50,8 @@ Let `U` be the number of truly unblocked cells in the finite grid.
      \text{moves} \le U \cdot (U-1) < U^2.
      \]
    So the total number of moves until success/failure is upper-bounded by the number of unblocked cells squared.
+
+Why this argument is convincing: nothing in the process can keep increasing forever in a finite grid. Each replan either finishes the problem or adds new knowledge, and there are only finitely many cells to learn about.
 
 ## Part 2 - Effects of tie-breaking in Repeated Forward A*
 
@@ -52,7 +75,11 @@ All runs were on the same 50 mazes (`101x101`, seed `42`).
 
 ### Explanation
 
-When `f = g + h` ties happen, choosing larger `g` tends to move search focus closer to the goal side of the same `f` contour. Choosing smaller `g` keeps more search effort near the start side. That is why `min_g` expands much more and runs much slower in our experiments.
+When `f = g + h` ties happen, choosing larger `g` tends to move search focus closer to the goal side of the same `f` contour. Choosing smaller `g` keeps more effort near the start side.
+
+That difference becomes very large in repeated planning because each search happens in an evolving partial map. In our runs, `min_g` repeatedly paid a much larger expansion cost, so runtime grew by an order of magnitude.
+
+Practical takeaway: for this project, forward A* with `max_g` is clearly the better tie strategy.
 
 ## Part 3 - Repeated Forward A* vs Repeated Backward A*
 
@@ -75,7 +102,11 @@ We compared:
 
 ### Explanation
 
-In this problem, new information is discovered around the agent as it moves. Planning from the current agent state to the goal aligned better with that information pattern than planning from goal back to current state, so forward search was consistently cheaper in our 50-maze set.
+In this problem, new information is discovered around the moving agent. Forward replanning starts exactly where new information matters most: the current agent position.
+
+Backward replanning starts from the goal and plans toward a changing agent state. In our tests, that was consistently less efficient under partial observability, even though the success rate stayed the same.
+
+Practical takeaway: both methods can solve the same mazes, but repeated forward A* is much cheaper here.
 
 ## Part 4a - Why Manhattan distance is consistent here
 
@@ -96,6 +127,8 @@ h(s)\le c(s,s')+h(s').
 
 So Manhattan distance is consistent.
 
+This is exactly the consistency condition A* needs. So Manhattan is a valid and safe heuristic choice for this 4-neighbor grid setup.
+
 ## Part 4b - Why Adaptive A* keeps heuristics admissible/consistent when costs increase
 
 Adaptive A* updates expanded states with:
@@ -109,6 +142,8 @@ Later, edge costs can only increase (not decrease), which means true shortest di
 For consistency: updates come from shortest-path `g` values in that search, which satisfy triangle-inequality-style relations. Non-updated states keep previously consistent values. With only cost increases and these updates, consistency is preserved across searches.
 
 So Adaptive A* keeps initially consistent heuristics both admissible and consistent.
+
+Why this matters in practice: Adaptive A* can safely increase heuristic values over time without breaking A* correctness.
 
 ## Part 5 - Repeated Forward A* vs Adaptive A*
 
@@ -134,7 +169,13 @@ Adaptive A* reuses prior search work by raising heuristic values on expanded sta
 \[
 h_{new}(s)=g(s_{goal})-g(s).
 \]
-That usually focuses later replans and lowers expansions. Runtime improves only slightly because overhead/noise can mask small gains.
+That usually focuses later replans and lowers expansions, which is exactly what we observed (adaptive won 34 mazes on expanded nodes).
+
+Runtime improvement is smaller and less stable because:
+- the absolute runtimes are already small,
+- OS/runtime noise affects milliseconds more than expansion counts.
+
+Practical takeaway: Adaptive A* is a good improvement over forward A* when the main goal is reducing search effort.
 
 ## Part 6 - Statistical significance (how + results)
 
@@ -155,6 +196,10 @@ H_0: P(\text{B win}) = 0.5.
 \]
 Two-sided exact p-values are computed from Binomial(`n`, 0.5), where `n = wins + losses`.
 
+Why we used a paired test: each algorithm is evaluated on the same maze set, so comparisons should be made maze-by-maze, not with independent-sample assumptions.
+
+Why we use expanded nodes as the primary metric: it is more stable and less affected by machine load than runtime.
+
 ### Expanded-node significance results
 
 - Part 2 (`min_g` vs `max_g`): wins=0, losses=46, ties=4  
@@ -170,4 +215,14 @@ At \(\\alpha=0.05\), all three expanded-node differences are statistically signi
 
 For Part 5 runtime, wins=25 and losses=25 (ties=0), so \(p=1.0\).  
 That means no statistically significant paired runtime advantage, even though the mean/median runtime is slightly better for adaptive.
+
+## Final Conclusion
+
+Across these 50 mazes:
+
+- In Part 2, `max_g` tie-breaking is clearly superior to `min_g`.
+- In Part 3, repeated forward A* is much more efficient than repeated backward A* in this setup.
+- In Part 5, Adaptive A* gives a consistent expansion benefit over forward A*.
+
+So the most practical overall choice in this project is to use forward-style replanning with strong tie-breaking (`max_g`), and use Adaptive A* when you want better repeated-search efficiency over time.
 
