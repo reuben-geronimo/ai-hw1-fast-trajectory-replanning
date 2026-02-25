@@ -1,11 +1,11 @@
 ## Results analysis (from generated JSON)
 
-This document summarizes the results in:
+This document summarizes the regenerated final results in:
 - `results_q2.json` (Part 2: forward repeated A* tie-breaking)
 - `results_q3.json` (Part 3: forward vs backward)
 - `results_q5.json` (Part 5: adaptive vs forward)
 
-All results below use the **same 50 mazes** from `mazes.json` (generated with `--seed 42`), and report:
+All results below use the **same 50 mazes** from `mazes.json` (generated with `--seed 42`) and report:
 - `expanded`: total expanded states across all replans (lower is better)
 - `runtime_ms`: end-to-end runtime per maze run (lower is better)
 - `path_length`: executed path length if found else `-1`
@@ -27,8 +27,8 @@ Comparison: **forward `max_g`** vs **forward `min_g`** (both run on each maze).
   - Median expanded: `max_g` **8,790** vs `min_g` **242,449**
   - Per-maze wins (expanded): `max_g` better on **46/50**, ties **4/50**, `min_g` better on **0/50**
 - **Runtime (ms)**: mirrors expansions (min_g much slower)
-  - Mean runtime: `max_g` **46.8 ms** vs `min_g` **739.9 ms**
-  - Median runtime: `max_g` **47.8 ms** vs `min_g` **868.4 ms**
+  - Mean runtime: `max_g` **76.7 ms** vs `min_g` **1,190.4 ms**
+  - Median runtime: `max_g` **80.9 ms** vs `min_g` **1,445.2 ms**
 
 ### “Both found” subset (26 mazes where both reached the goal)
 
@@ -36,7 +36,7 @@ This removes the `path_length=-1` cases.
 
 - Mean expanded: `max_g` **10,589** vs `min_g` **283,098**
 - Median expanded: `max_g` **9,260.5** vs `min_g` **255,814**
-- Mean runtime: `max_g` **57.5 ms** vs `min_g` **1,038.8 ms**
+- Mean runtime: `max_g` **94.6 ms** vs `min_g` **1,666.8 ms**
 
 ### Explanation to use in the report (what + why)
 
@@ -59,8 +59,8 @@ Comparison: **backward (max_g)** vs **forward (max_g)** on each maze.
   - Median expanded: `fwd` **8,790** vs `bwd` **101,170**
   - Per-maze wins (expanded): `fwd` better on **50/50** mazes
 - **Runtime (ms)**: forward is dramatically faster
-  - Mean runtime: `fwd` **45.4 ms** vs `bwd` **803.3 ms**
-  - Median runtime: `fwd` **47.4 ms** vs `bwd` **758.4 ms**
+  - Mean runtime: `fwd` **77.1 ms** vs `bwd` **1,325.6 ms**
+  - Median runtime: `fwd` **82.2 ms** vs `bwd` **1,283.9 ms**
   - Per-maze wins (runtime): `fwd` better on **50/50** mazes
 
 ### Explanation to use in the report (what + why)
@@ -84,8 +84,8 @@ Comparison: **adaptive (max_g)** vs **forward (max_g)** on each maze.
   - Median expanded: `fwd` **8,790** vs `adaptive` **8,717**
   - Per-maze wins (expanded): adaptive better on **34/50**, ties **14/50**, worse **2/50**
 - **Runtime (ms)**: small improvement on average, but mixed per-maze
-  - Mean runtime: `fwd` **48.2 ms** vs `adaptive` **46.1 ms**
-  - Median runtime: `fwd` **49.8 ms** vs `adaptive` **49.2 ms**
+  - Mean runtime: `fwd` **76.0 ms** vs `adaptive` **74.6 ms**
+  - Median runtime: `fwd` **81.4 ms** vs `adaptive` **78.6 ms**
 
 ### Explanation to use in the report (what + why)
 
@@ -131,5 +131,5 @@ Interpretation (with \(\alpha = 0.05\)): for expansions, the differences above a
 
 ### Note on runtime significance (optional)
 
-If you also test `runtime_ms`, use the same paired framework, but note runtime has additional variance from the OS and Python runtime environment. In our sample, `adaptive` vs `fwd` runtime differences were not significant by a sign test (two-sided \(p \approx 0.32\)).
+If you also test `runtime_ms`, use the same paired framework, but note runtime has additional variance from the OS and Python runtime environment. In our regenerated sample, `adaptive` vs `fwd` runtime sign-test gives wins=25, losses=25 (no ties), so two-sided \(p = 1.0\), i.e., no detectable paired advantage in runtime despite small mean/median differences.
 
